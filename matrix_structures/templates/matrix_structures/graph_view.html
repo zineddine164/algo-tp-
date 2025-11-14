@@ -1,0 +1,237 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualisation d’un Graphe</title>
+  <style>
+    /* --- Style global --- */
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: linear-gradient(135deg, #eef3f9, #dfe9f3);
+      margin: 0;
+      padding: 0;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #1a3d5d;
+      letter-spacing: 1px;
+      text-align: center;
+      width: 100%;
+      text-transform: uppercase;
+      margin-top: 30px;
+    }
+
+    /* --- Conteneur principal --- */
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      width: 80%;
+      margin: 30px auto;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .container:hover {
+      transform: scale(1.01);
+    }
+
+    /* --- Formulaire --- */
+    form {
+      margin-bottom: 40px;
+      text-align: left;
+    }
+
+    form p {
+      margin: 10px 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #1a3d5d;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: #0078d7;
+      outline: none;
+    }
+
+    button {
+      background: #0078d7;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #005fa3;
+      transform: translateY(-2px);
+    }
+
+    /* --- Section résultats : deux colonnes --- */
+    .result-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    /* --- Propriétés à gauche --- */
+    .properties {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .properties h3 {
+      color: #1a3d5d;
+      border-bottom: 2px solid #0078d7;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+
+    ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    li {
+      background: #f8fafc;
+      margin-bottom: 8px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border-left: 4px solid #0078d7;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    li b {
+      color: #1a3d5d;
+    }
+
+    /* --- Image du graphe à droite --- */
+    .graph {
+      flex: 1;
+      text-align: center;
+    }
+
+    .graph img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.3s;
+    }
+
+    .graph img:hover {
+      transform: scale(1.03);
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 800px) {
+      .result-section {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .properties, .graph {
+        width: 100%;
+        text-align: center;
+      }
+
+      .container {
+        width: 95%;
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+     /* --- Bouton retour --- */
+    .back-btn {
+      display: inline-block;
+      background: #1a3d5d;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 20px;
+      transition: all 0.3s ease;
+      margin-top: 30px;
+    }
+
+    .back-btn:hover {
+      background: #16324a;
+      transform: translateY(-2px);
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1>Visualisation d’un Graphe</h1>
+
+  <div class="container">
+    <form method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Afficher</button>
+    </form>
+
+    {% if graph_img %}
+      <div class="result-section">
+        <!-- Propriétés à gauche -->
+        <div class="properties">
+          <h3>Propriétés :</h3>
+          <ul>
+            {% for k, v in props.items %}
+              <li><b>{{ k }} :</b> {{ v }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Graphe à droite -->
+        <div class="graph">
+          <h3>Résultat :</h3>
+          <img src="data:image/png;base64,{{ graph_img }}" alt="Graphe généré">
+        </div>
+      </div>
+    {% endif %}
+     <!-- Bouton retour -->
+    <div style="text-align:center;">
+      <a href="{% url 'tp1' %}" class="back-btn">⬅ Retour à la page principale</a>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Animations de Tri Simplifiées</title>
+    <style>
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .panel { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 15px 0; }
+        .animation-panel { background: #e3f2fd; border: 2px solid #2196f3; }
+        button { 
+            background: #2196f3; color: white; padding: 12px 20px; 
+            border: none; border-radius: 6px; cursor: pointer; margin: 5px;
+            font-size: 16px; font-weight: bold;
+        }
+        button:hover { background: #1976d2; }
+        .heap-btn { background: #4caf50; }
+        .heap-btn:hover { background: #388e3c; }
+        .btree-btn { background: #ff9800; }
+        .btree-btn:hover { background: #f57c00; }
+        .animation-image { 
+            max-width: 100%; border: 3px solid #ccc; border-radius: 8px;
+            margin: 15px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .message { 
+            padding: 15px; border-radius: 8px; margin: 10px 0; 
+            font-weight: bold; text-align: center;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: #333;">🎬 Animations de Tri Simplifiées</h1>
+        
+        <!-- Panel de chargement des valeurs -->
+        <div class="panel">
+            <h3>📊 Charger les données</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="text" name="values_input" 
+                       value="{{ current_values }}" 
+                       placeholder="Ex: 50,30,70,20,40,60,80" 
+                       style="padding: 12px; width: 300px; font-size: 16px;">
+                <button type="submit" name="load_values">📥 Charger les valeurs</button>
+            </form>
+            
+            {% if current_values %}
+            <p><strong>Valeurs actuelles:</strong> {{ current_values }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Panel des animations -->
+        <div class="panel">
+            <h3>🚀 Lancer les animations</h3>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" name="heap_animation" class="heap-btn">
+                    🔥 Tri par Tas (Heap Sort)
+                </button>
+                <button type="submit" name="btree_animation" class="btree-btn">
+                    🌳 Parcours B-Arbre
+                </button>
+            </form>
+        </div>
+        
+        <!-- Messages -->
+        {% if message %}
+        <div class="message success">{{ message }}</div>
+        {% endif %}
+        
+        <!-- Animation en cours -->
+        {% if show_animation %}
+        <div class="panel animation-panel">
+            <h3>🎬 Animation en cours</h3>
+            <div class="message info">{{ animation_message }}</div>
+            
+            {% if animation_img %}
+            <img src="data:image/png;base64,{{ animation_img }}" class="animation-image">
+            {% endif %}
+            
+            <form method="POST" style="text-align: center;">
+                {% csrf_token %}
+                <button type="submit" name="next_step" style="background: #9c27b0;">
+                    ⏭️ Étape Suivante
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

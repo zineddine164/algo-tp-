@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualisation des Arbres</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #f8fafc;
+      --card: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: #1e293b;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .description {
+      color: #64748b;
+      margin-bottom: 30px;
+    }
+
+    /* Contrôles */
+    .controls {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    input, select, button {
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    button.insert { background: #10b981; }
+    button.search { background: #10b981; }
+    button.delete { background: #10b981; }
+    button.reset { background: #10b981; }
+    button.back-btn { background: #10b981; }
+
+    /* Arbres */
+    .trees-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .tree-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .tree-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .tree-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f1f5f9;
+    }
+
+    .tree-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .tree-badge {
+      background: #dbeafe;
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .tree-visual {
+      text-align: center;
+      margin: 20px 0;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 2px dashed #e2e8f0;
+    }
+
+    .tree-img {
+      max-width: 100%;
+      max-height: 250px;
+      border-radius: 8px;
+    }
+
+    .tree-props {
+      background: #f1f5f9;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .prop-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .prop-value {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* Messages */
+    .message {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .message.success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .message.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .message.info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+
+    /* Comparaison */
+    .comparison {
+      background: var(--card);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .comp-item {
+      text-align: center;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+
+    .comp-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 10px 0;
+    }
+
+    .comp-label {
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Navigation */
+    .navigation {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #2563eb;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .trees-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .btn-group {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .comparison-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    /* Modal pour l'image agrandie */
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    max-width: 90%;
+    max-height: 90%;
+    margin-top: 2%;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: zoomIn 0.3s;
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.close:hover {
+    color: #ccc;
+    transform: scale(1.1);
+}
+
+/* Image cliquable dans les cartes */
+.tree-img {
+    max-width: 100%;
+    max-height: 250px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.tree-img:hover {
+    transform: scale(1.02);
+    border-color: var(--primary);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+}
+
+/* Titre dans le modal */
+.modal-title {
+    text-align: center;
+    color: white;
+    margin-top: 10px;
+    font-size: 24px;
+    font-weight: 600;
+}
+.animation-section {
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animation-controls {
+    transition: all 0.3s ease;
+}
+
+.animation-controls:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Effet de pulsation pour les boutons d'animation */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.btn[style*="background: linear-gradient"] {
+    animation: pulse 2s infinite;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🌳 Visualisation des Arbres</h1>
+      <p class="description">
+        Comparez les performances et visualisez différents types d'arbres : ABR, AVL, Tas et B-Arbre
+      </p>
+    </header>
+
+    <!-- Contrôles -->
+    <div class="controls">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="file_input">📁 Charger depuis un fichier :</label>
+            <input type="file" id="file_input" name="file_input" accept=".txt,.csv">
+            <small style="color: #64748b; margin-top: 5px;">Format : valeurs séparées par des virgules, espaces ou nouvelles lignes</small>
+          </div>
+
+          <div class="form-group">
+            <label for="manual_input">⌨️ Saisie manuelle :</label>
+            <input type="text" id="manual_input" name="manual_input" 
+            placeholder="Ex: 50,30,70,20,40,60,80" value="{{ initial_values }}">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="operation_value">Valeur pour l'opération :</label>
+            <input type="number" id="operation_value" name="operation_value" 
+                   placeholder="Entrez une valeur numérique">
+          </div>
+
+          <div class="form-group">
+            <label for="b_tree_order">Ordre du B-Arbre :</label>
+            <input type="number" id="b_tree_order" name="b_tree_order" value="3" min="2" max="10">
+          </div>
+        </div>
+
+        <div class="btn-group">
+    <button type="submit" name="action" value="generate" class="insert">
+        🚀 Générer les Arbres
+    </button>
+    <button type="submit" name="action" value="insert" class="insert">
+        ➕ Insérer
+    </button>
+    <button type="submit" name="action" value="search" class="search">
+        🔍 Rechercher
+    </button>
+    <button type="submit" name="action" value="delete" class="delete">
+        🗑️ Supprimer
+    </button>
+    <button type="submit" name="action" value="reset" class="reset">
+        🆕 Nouveau
+    </button>
+      <a href="{% url 'simple_visualisation' %}" class="back-btn" style="background-color: #10b981;">
+           🚀 Afficher le tri
+    </a>
+  
+</div>
+</div>
+      </form>
+    </div>
+
+    <!-- Messages -->
+    {% if message %}
+    <div class="message {{ message_type }}">
+      {{ message }}
+    </div>
+    {% endif %}
+
+    <!-- Visualisation des Arbres -->
+    <div class="trees-grid">
+      <!-- ABR -->
+      <div class="tree-card">
+        <div class="tree-header">
+          <div class="tree-title">Arbre Binaire de Recherche (ABR)</div>
+          <div class="tree-badge">Basique</div>
+        </div>
+        <div class="tree-visual">
+          {% if abr_img %}
+            <img src="data:image/png;base64,{{ abr_img }}" alt="ABR" class="tree-img">
+          {% else %}
+            <div style="color: #94a3b8; font-style: italic;">Aucun arbre généré</div>
+          {% endif %}
+        </div>
+        <div class="tree-props">
+          {% for key, value in abr_props.items %}
+          <div class="prop-item">
+            <span>{{ key }}:</span>
+            <span class="prop-value">{{ value }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+<!-- AVL -->
+<div class="tree-card">
+  <div class="tree-header">
+    <div class="tree-title">Arbre AVL</div>
+    <div class="tree-badge">Équilibré</div>
+  </div>
+
+ <div style="margin: 10px 0; text-align: center;">
+  <form method="get" action="{% url 'affiche_timsort' %}">
+    <input type="hidden" name="liste" value="{{ tri_inorder|join:',' }}">
+    <input type="hidden" name="minrun" value="32">
+    <button type="submit" class="btn btn-primary" style="background-color:#2563eb; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer;">
+      ⚡ Appliquer Timsort
+    </button>
+  </form>
+</div>
+
+
+  <div class="tree-visual">
+    {% if avl_img %}
+      <img src="data:image/png;base64,{{ avl_img }}" alt="AVL" class="tree-img">
+    {% else %}
+      <div style="color: #94a3b8; font-style: italic;">Aucun arbre généré</div>
+    {% endif %}
+  </div>
+
+  <div class="tree-props">
+    {% for key, value in avl_props.items %}
+    <div class="prop-item">
+      <span>{{ key }}:</span>
+      <span class="prop-value">{{ value }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+      <!-- Tas -->
+      <div class="tree-card">
+        <div class="tree-header">
+          <div class="tree-title">Tas (Heap)</div>
+          <div class="tree-badge">Priorité</div>
+        </div>
+        <div class="tree-visual">
+          {% if heap_img %}
+            <img src="data:image/png;base64,{{ heap_img }}" alt="Tas" class="tree-img">
+          {% else %}
+            <div style="color: #94a3b8; font-style: italic;">Aucun arbre généré</div>
+          {% endif %}
+        </div>
+        <div class="tree-props">
+          {% for key, value in heap_props.items %}
+          <div class="prop-item">
+            <span>{{ key }}:</span>
+            <span class="prop-value">{{ value }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- B-Arbre -->
+      <div class="tree-card">
+        <div class="tree-header">
+          <div class="tree-title">B-Arbre</div>
+          <div class="tree-badge">Base de données</div>
+        </div>
+        <div class="tree-visual">
+          {% if btree_img %}
+            <img src="data:image/png;base64,{{ btree_img }}" alt="B-Arbre" class="tree-img">
+          {% else %}
+            <div style="color: #94a3b8; font-style: italic;">Aucun arbre généré</div>
+          {% endif %}
+        </div>
+        <div class="tree-props">
+          {% for key, value in btree_props.items %}
+          <div class="prop-item">
+            <span>{{ key }}:</span>
+            <span class="prop-value">{{ value }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparaison -->
+<div class="comparison">
+    <h3>📊 Comparaison des Performances</h3>
+    <div class="comparison-grid">
+        <!-- Hauteur -->
+        <div class="comp-item">
+            <div class="comp-label">Hauteur ABR</div>
+            <div class="comp-value">{{ comparison.abr_height|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Hauteur AVL</div>
+            <div class="comp-value">{{ comparison.avl_height|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Hauteur Tas</div>
+            <div class="comp-value">{{ comparison.heap_height|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Hauteur B-Arbre</div>
+            <div class="comp-value">{{ comparison.btree_height|default:"-" }}</div>
+        </div>
+        
+        <!-- Profondeur moyenne -->
+        <div class="comp-item">
+            <div class="comp-label">Prof. moyenne ABR</div>
+            <div class="comp-value">{{ comparison.abr_avg_depth|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Prof. moyenne AVL</div>
+            <div class="comp-value">{{ comparison.avl_avg_depth|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Prof. moyenne Tas</div>
+            <div class="comp-value">{{ comparison.heap_avg_depth|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Prof. moyenne B-Arbre</div>
+            <div class="comp-value">{{ comparison.btree_avg_depth|default:"-" }}</div>
+        </div>
+        
+        <!-- Qualité équilibre -->
+        <div class="comp-item">
+            <div class="comp-label">Équilibre ABR</div>
+            <div class="comp-value" style="font-size: 14px;">{{ comparison.abr_balance_quality|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Équilibre AVL</div>
+            <div class="comp-value" style="font-size: 14px;">{{ comparison.avl_balance_quality|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Équilibre Tas</div>
+            <div class="comp-value" style="font-size: 14px;">{{ comparison.heap_balance_quality|default:"-" }}</div>
+        </div>
+        <div class="comp-item">
+            <div class="comp-label">Équilibre B-Arbre</div>
+            <div class="comp-value" style="font-size: 14px;">{{ comparison.btree_balance_quality|default:"-" }}</div>
+        </div>
+    </div>
+</div>
+    <!-- Navigation -->
+    <div class="navigation">
+      <a href="{% url 'tp2' %}" class="back-btn">
+        ← Retour au TP2
+      </a>
+    </div>
+  </div>
+  <script>
+    // Sélection automatique du type de fichier
+    document.getElementById('file_input').addEventListener('change', function(e) {
+      if (this.files.length > 0) {
+        document.getElementById('manual_input').placeholder = 'Fichier sélectionné: ' + this.files[0].name;
+      }
+    });
+
+    // Animation des cartes
+    document.addEventListener('DOMContentLoaded', function() {
+      const cards = document.querySelectorAll('.tree-card');
+      cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+      });
+    });
+  </script>
+  <!-- Modal pour l'image agrandie -->
+<div id="imageModal" class="image-modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImage">
+    <div id="modalTitle" class="modal-title"></div>
+</div>
+<script>
+// Modal pour les images agrandies
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the modal
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    const modalTitle = document.getElementById("modalTitle");
+    const closeBtn = document.querySelector(".close");
+    
+    // Fonction pour ouvrir le modal
+    function openModal(imgSrc, title) {
+        modal.style.display = "block";
+        modalImg.src = imgSrc;
+        modalTitle.textContent = title;
+        document.body.style.overflow = "hidden"; // Empêche le scroll
+    }
+    
+    // Fermer le modal
+    function closeModal() {
+        modal.style.display = "none";
+        document.body.style.overflow = "auto"; // Réactive le scroll
+    }
+    
+    // Ajouter les événements de clic à toutes les images d'arbres
+    document.querySelectorAll('.tree-img').forEach(img => {
+        img.addEventListener('click', function() {
+            const card = this.closest('.tree-card');
+            const title = card.querySelector('.tree-title').textContent;
+            openModal(this.src, title);
+        });
+    });
+    
+    // Fermer quand on clique sur X
+    closeBtn.addEventListener('click', closeModal);
+    
+    // Fermer quand on clique en dehors de l'image
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Fermer avec la touche Échap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") {
+            closeModal();
+        }
+    });
+    
+    // Animation d'entrée pour les cartes
+    const cards = document.querySelectorAll('.tree-card');
+    cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+    });
+});
+</script>
+</body>
+</html>

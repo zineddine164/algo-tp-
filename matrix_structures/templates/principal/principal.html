@@ -1,0 +1,232 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TPs – Interface Principale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0f1e;
+      --card-bg: #101827;
+      --accent: #ff9900; /* Couleur Sonatrach */
+      --text-light: #e5e7eb;
+      --text-muted: #94a3b8;
+      --shadow: 0 10px 25px rgba(0,0,0,0.6);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Inter", sans-serif;
+      margin: 0;
+      background: linear-gradient(180deg, var(--bg), #060b16);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    header h1 {
+      font-size: 28px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .tp-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+
+    .tp-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 35px rgba(255, 153, 0, 0.3);
+    }
+
+    .tp-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .tp-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 5px;
+    }
+
+    .tp-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .tp-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.25s ease;
+    }
+
+    .btn:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    footer {
+      margin-top: 50px;
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tp-card { animation: fadeIn 0.5s ease forwards; }
+     /* --- Bouton retour --- */
+    .back-btn {
+      display: inline-block;
+      background: #1a3d5d;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 10px 20px;
+      transition: all 0.3s ease;
+      margin-top: 30px;
+    }
+
+    .back-btn:hover {
+      background: #16324a;
+      transform: translateY(-2px);
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Interface des Travaux Pratiques</h1>
+    <p>Choisis un TP pour accéder à son contenu</p>
+  </header>
+
+  <main class="grid">
+    <!-- TP1 -->
+    <article class="tp-card">
+      <img src="{% static 'images/tp1.png' %}" alt="TP1">
+      <div class="tp-title">TP1 – Introduction & Setup</div>
+      <div class="tp-desc">Installation des outils, structure du projet et premier script d’exécution.</div>
+      <div class="tp-actions">
+        <a class="btn" href="{% url 'tp1' %}">Ouvrir TP1</a>
+        <a class="btn" href="{% static 'pdf/tp1.pdf' %}" download>Télécharger</a>
+      </div>
+    </article>
+
+    <!-- TP2 -->
+    <article class="tp-card">
+      <img src="{% static 'images/tp2.png' %}" alt="TP2">
+      <div class="tp-title">TP2 – Algorithmes de base</div>
+      <div class="tp-desc">Boucles, conditions et fonctions : manipulation d’algorithmes simples.</div>
+      <div class="tp-actions">
+        <a class="btn" href="{% url 'tp2' %}">Ouvrir TP2</a>
+        <a class="btn" href="{% static 'pdf/tp2.pdf' %}" download>Télécharger</a>
+      </div>
+    </article>
+
+    <!-- TP3 -->
+    <article class="tp-card">
+      <img src="{% static 'images/tp3.png' %}" alt="TP3">
+      <div class="tp-title">TP3 – Structures de données</div>
+      <div class="tp-desc">Listes, piles, files et dictionnaires : implémentations et utilisation pratique.</div>
+      <div class="tp-actions">
+        <a class="btn" href="{% url 'tp3' %}">Ouvrir TP3</a>
+        <a class="btn" href="{% static 'pdf/tp3.pdf' %}" download>Télécharger</a>
+      </div>
+    </article>
+
+    <!-- TP4 -->
+    <article class="tp-card">
+      <img src="{% static 'images/tp4.png' %}" alt="TP4">
+      <div class="tp-title">TP4 – Systèmes & Threads</div>
+      <div class="tp-desc">Exercices sur fork(), pthreads et synchronisation avec sémaphores.</div>
+      <div class="tp-actions">
+        <a class="btn" href="{% url 'tp4' %}">Ouvrir TP4</a>
+        <a class="btn" href="{% static 'pdf/tp4.pdf' %}" download>Télécharger</a>
+      </div>
+    </article>
+
+    <!-- TP5 -->
+    <article class="tp-card">
+      <img src="{% static 'images/tp5.png' %}" alt="TP5">
+      <div class="tp-title">TP5 – Réseaux & Sockets</div>
+      <div class="tp-desc">Création de serveurs et clients TCP/UDP pour comprendre les communications réseau.</div>
+      <div class="tp-actions">
+        <a class="btn" href="{% url 'tp5' %}">Ouvrir TP5</a>
+        <a class="btn" href="{% static 'pdf/tp5.pdf' %}" download>Télécharger</a>
+      </div>
+    </article>
+
+    <!-- TP6 -->
+    <article class="tp-card">
+      <img src="{% static 'images/tp6.png' %}" alt="TP6">
+      <div class="tp-title">TP6 – Projet Final</div>
+      <div class="tp-desc">Réalisation d’un mini-projet intégrant toutes les notions apprises.</div>
+      <div class="tp-actions">
+        <a class="btn" href="{% url 'tp6' %}">Ouvrir TP6</a>
+        <a class="btn" href="{% static 'pdf/tp6.pdf' %}" download>Télécharger</a>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    © <script>document.write(new Date().getFullYear())</script> • Interface développée pour les TPs
+  </footer>
+</body>
+</html>
