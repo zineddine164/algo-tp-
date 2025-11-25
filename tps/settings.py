@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-1kmb14us#w_=jz29v9q4nk9m%zd@284n4%57j^(0yfer1i8tjp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['algo-tp-4.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'algo-tp-4.onrender.com']
+
 
 
 
