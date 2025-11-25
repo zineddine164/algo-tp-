@@ -1,386 +1,217 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<title>Timsort — Arbre hiérarchique animé</title>
+<meta charset="UTF-8">
+<title>Timsort – Arbre Vertical</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+
 <style>
-    :root{
-        --bg:#f4f6fb;
-        --card:#fff;
-        --primary:#0b71d0;
-        --accent:#ff8c00;
-        --muted:#666;
-    }
-    body{
-        margin:0;
-        font-family: Inter, Arial, sans-serif;
-        background:var(--bg);
-        color:#222;
-    }
-    .page {
-        max-width:1200px;
-        margin:26px auto;
-        padding:18px;
-    }
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f9fafb;
+    padding: 20px;
+    color: #1f2937;
+}
 
-    .header{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap: 16px;
-        margin-bottom:14px;
-    }
-    h1{ margin:0; font-size:20px; }
+h1, h2 {
+    text-align: center;
+    color: #111827;
+    margin-bottom: 25px;
+}
 
-    form input[type="text"], form input[type="number"]{
-        padding:8px 10px;
-        border:1px solid #d7dbe6;
-        border-radius:6px;
-        font-size:14px;
-    }
-    form button{
-        padding:8px 12px;
-        background:var(--primary);
-        color:white;
-        border:none;
-        border-radius:6px;
-        cursor:pointer;
-    }
+form {
+    text-align: center;
+    margin-bottom: 50px;
+}
 
-    .content {
-        display:grid;
-        grid-template-columns: 1fr 320px;
-        gap:18px;
-        align-items:start;
-    }
+form input, form button {
+    padding: 12px 18px;
+    margin: 8px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 16px;
+    transition: all 0.3s;
+}
 
-    /* ---------------- TREE PANEL ---------------- */
-    .tree-panel {
-        background:var(--card);
-        padding:18px;
-        border-radius:10px;
-        box-shadow: 0 6px 18px rgba(18,30,80,0.06);
-    }
+form input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
 
-    .tree-title {
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:12px;
-    }
+form button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
 
-    .tree-scroll {
-        max-height:620px;
-        overflow:auto;
-        padding-right:8px;
-    }
+form button:hover {
+    background-color: #2563eb;
+}
 
-    /* Each level (one row in the tree) */
-    .tree-level {
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        gap:18px;
-        margin: 18px 0;
-        position:relative;
-        min-height:64px;
-    }
+/* ================= ARBRE ================= */
+.tree {
+    text-align: center;
+    margin-bottom: 50px;
+}
 
-    /* Node style */
-    .node {
-        display:inline-block;
-        padding:10px 16px;
-        border-radius:22px;
-        background:var(--primary);
-        color:white;
-        font-weight:600;
-        box-shadow: 0 6px 14px rgba(11,113,208,0.12);
-        transition: transform 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
-    }
+.level {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 50px;
+    position: relative;
+}
 
-    /* flash animation when node is processed */
-    @keyframes flash {
-        0%   { transform: scale(1); background: var(--primary); box-shadow: 0 6px 14px rgba(11,113,208,0.12); }
-        40%  { transform: scale(1.08); background: var(--accent); box-shadow: 0 14px 26px rgba(255,140,0,0.18); }
-        100% { transform: scale(1); background: var(--primary); }
-    }
+.node {
+    padding: 18px 25px;
+    border-radius: 12px;
+    background: #22c55e;  /* Vert par défaut pour les runs initiaux */
+    color: white;
+    font-weight: 600;
+    min-width: 140px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease-in-out;
+}
 
-    .node.flash {
-        animation: flash 0.9s ease-in-out;
-    }
+/* Couleurs par étape */
+.node.level-1 { background: #ef4444; }  /* Rouge - Détection */
+.node.level-2 { background: #f97316; }  /* Orange - Run trié */
+.node.level-3 { background: #3b82f6; }  /* Bleu - Fusion */
+.node.level-4 { background: #16a34a; }  /* Vert - Résultat fusion */
+.node.level-5 { background: #8b5cf6; }  /* Violet - Tableau final */
 
-    /* arrow between levels (vertical) */
-    .arrow-down {
-        display:flex;
-        justify-content:center;
-        margin-top:-6px;
-        color:var(--muted);
-        font-size:22px;
-    }
+.node.flash-fusion {
+    animation: flash-node 1s ease-in-out;
+}
 
-    /* connectors horizontally (used inside level when representing merges) */
-    .connector {
-        height:2px;
-        background:#e0e6f3;
-        width:40px;
-        display:inline-block;
-        vertical-align:middle;
-    }
+@keyframes flash-node {
+    0% { box-shadow: 0 0 6px #fbbf24; transform: scale(1); }
+    50% { box-shadow: 0 0 20px #fbbf24; transform: scale(1.05); }
+    100% { box-shadow: 0 0 6px #fbbf24; transform: scale(1); }
+}
 
-    /* ---------------- STEPS PANEL (side) ---------------- */
-    .steps-panel {
-        background:var(--card);
-        padding:18px;
-        border-radius:10px;
-        box-shadow: 0 6px 18px rgba(18,30,80,0.06);
-        max-height:740px;
-        overflow:auto;
-    }
+.node span.num-inserted {
+    background-color: #fde68a;
+    color: #111;
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin: 1px;
+    font-weight: 600;
+}
 
-    .steps-list { list-style:none; padding:0; margin:0; }
-    .step-item{
-        padding:10px 12px;
-        margin-bottom:8px;
-        border-radius:8px;
-        background: #fafbff;
-        border-left: 4px solid transparent;
-        font-size:14px;
-        color:#1f2b45;
-    }
+/* Lignes entre niveaux */
+.level-line {
+    position: relative;
+    height: 40px;
+}
 
-    .step-item.current {
-        background: #e8f1ff;
-        border-left-color: var(--primary);
-    }
+.level-line::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: #3b82f6;
+}
 
-    /* controls */
-    .controls{
-        margin-top:12px;
-        display:flex;
-        gap:8px;
-        justify-content:center;
-    }
-    .btn{
-        padding:8px 12px;
-        border-radius:8px;
-        border: none;
-        cursor:pointer;
-        background:#2b3a59;
-        color:white;
-        font-weight:600;
-    }
-    .btn.secondary {
-        background: #6b7280;
-    }
-    .small {
-        padding:6px 10px;
-        font-size:13px;
-    }
+.level-line hr {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    border: none;
+    height: 2px;
+    background: #3b82f6;
+}
 
-    /* responsive */
-    @media (max-width:960px){
-        .content{ grid-template-columns: 1fr; }
-        .steps-panel{ order: -1; margin-bottom:10px; }
-    }
+/* Étapes détaillées */
+.step-box {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.step-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
 </style>
+
+
 </head>
 <body>
-<div class="page">
-    <div class="header">
-        <h1>Visualisation Timsort — Arbre hiérarchique</h1>
 
-        <form method="POST" style="display:flex; gap:8px; align-items:center;">
-            {% csrf_token %}
-            <input type="text" name="liste" value="{{ input_list }}" placeholder="ex: 5,3,8,2" />
-            <input type="number" name="minrun" value="{{ minrun }}" style="width:90px;" />
-            <button type="submit">Lancer</button>
-        </form>
-    </div>
+<h1>Timsort – Arbre Vertical</h1>
 
-    <div class="content">
-        <!-- TREE PANEL -->
-        <div class="tree-panel">
-            <div class="tree-title">
-                <div><strong>Arbre complet (niveaux = étapes)</strong><div style="font-size:13px; color:#666;">Chaque ligne représente un snapshot du tableau.</div></div>
-                <div style="font-size:13px; color:#666;">Total étapes : {{ steps|length }}</div>
-            </div>
+<form method="POST">
+{% csrf_token %}
+<input type="text" name="liste" placeholder="Ex: 5,3,8,1,6" value="{{ input_list }}">
+<input type="number" name="minrun" placeholder="Minrun" value="{{ minrun }}">
+<button type="submit">Lancer Timsort</button>
+</form>
 
-            <div class="tree-scroll" id="treeScroll">
-                {% if steps %}
-                    {# Render every step as a level (index used as level number) #}
-                    {% for step in steps %}
-                        <div class="tree-level" data-level="{{ forloop.counter0 }}">
-                            {# For visual merge connector: show nodes of this level #}
-                            {% for v in step.array %}
-                                <div class="node" data-level="{{ forloop.parentloop.counter0 }}" data-val="{{ v }}">{{ v }}</div>
-                                {% if not forloop.last %}
-                                    <span class="connector" aria-hidden="true"></span>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-
-                        {# show arrow down between levels except after last one #}
-                        {% if not forloop.last %}
-                            <div class="arrow-down" data-arrow="{{ forloop.counter0 }}">⬇</div>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <div style="padding:24px; text-align:center; color:#666;">
-                        Aucune étape — saisissez une liste et lancez Timsort.
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- controls under tree -->
-            <div class="controls" style="margin-top:14px;">
-                <button class="btn small" id="prevBtn">⬅ Précédent</button>
-                <button class="btn small" id="nextBtn">Suivant ➡</button>
-                <button class="btn small secondary" id="playBtn">▶ Lecture</button>
-                <button class="btn small secondary" id="pauseBtn">⏸ Pause</button>
-                <button class="btn small secondary" id="resetBtn">⟲ Réinitialiser</button>
-            </div>
-        </div>
-
-        <!-- STEPS PANEL -->
-        <aside class="steps-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                <strong>Étapes principales</strong>
-                <span style="font-size:13px; color:#666;">Cliquez pour aller à l'étape</span>
-            </div>
-
-            <ul class="steps-list" id="stepsList">
-                {% for step in steps %}
-                    <li class="step-item" data-step="{{ forloop.counter0 }}">
-                        <div style="font-weight:700; font-size:13px;">Étape {{ forloop.counter }} :</div>
-                        <div style="font-size:13px; color:#3b485f; margin-top:6px;">{{ step.label }}</div>
-                        <div style="margin-top:4px; font-size:12px; color:#888;">Complexité : {{ step.complexity }}</div>
-                        <div style="margin-top:8px; font-size:13px; color:#1f2b45;">{{ step.array }}</div>
-                    </li>
+<!-- ================= ARBRE ================= -->
+<div class="tree">
+{% for level in tree_levels %}
+    <div class="level">
+        {% for node in level %}
+        <div class="node {% if 'trié' in node.label %}run-sorted{% endif %} {% if 'Fusion' in node.label or 'Résultat après fusion' in node.label %} flash-fusion{% endif %}">
+            {{ node.label }}<br>
+            <small>
+                {% for num in node.array %}
+                    {% if num in node.inserted %}
+                        <span class="num-inserted">{{ num }}</span>
+                    {% else %}
+                        {{ num }}
+                    {% endif %}
                 {% endfor %}
-            </ul>
-        </aside>
+            </small>
+        </div>
+        {% endfor %}
     </div>
+    {% if not forloop.last %}
+    <div class="level-line"><hr></div>
+    {% endif %}
+{% endfor %}
+
+<!-- Tableau final trié -->
+{% if steps %}
+    {% with last_step=steps|last %}
+    <div class="level">
+        <div class="node flash-fusion">
+            ✅ Tableau Final Trié<br>
+            <small>
+            {% for num in last_step.array %}
+                <span class="num-inserted">{{ num }}</span>
+            {% endfor %}
+            </small>
+        </div>
+    </div>
+    {% endwith %}
+{% endif %}
+
 </div>
 
-<script>
-(function(){
-    const steps = document.querySelectorAll('.tree-level');
-    const arrows = document.querySelectorAll('.arrow-down');
-    const stepItems = document.querySelectorAll('#stepsList .step-item');
+<h2>Étapes détaillées</h2>
+{% for s in steps %}
+<div class="step-box">
+<strong>{{ s.label }}</strong><br>
+Tableau : {{ s.array }}<br>
+{% if s.run_block %} Run : {{ s.run_block }}<br> {% endif %}
+Complexité : {{ s.complexity }}
+</div>
+{% endfor %}
 
-    let current = 0;
-    let timer = null;
-    const total = steps.length;
-
-    // utility: clear all flashes
-    function clearFlashes(){
-        document.querySelectorAll('.node.flash').forEach(n => n.classList.remove('flash'));
-        document.querySelectorAll('.step-item.current').forEach(s => s.classList.remove('current'));
-        document.querySelectorAll('.arrow-down.flash').forEach(a => a.classList.remove('flash'));
-    }
-
-    // highlight level i: flash nodes on that level and mark step list
-    function highlightLevel(i){
-        clearFlashes();
-        if(i < 0 || i >= total) return;
-
-        // flash nodes in level i
-        const level = document.querySelector('.tree-level[data-level="'+i+'"]');
-        if(level){
-            level.querySelectorAll('.node').forEach(node => {
-                node.classList.add('flash');
-            });
-        }
-
-        // flash arrow above (if exists) and below
-        const aboveArrow = document.querySelector('.arrow-down[data-arrow="'+i+'"]');
-        if(aboveArrow) aboveArrow.classList.add('flash');
-
-        const belowArrow = document.querySelector('.arrow-down[data-arrow="'+(i-1)+'"]');
-        if(belowArrow) belowArrow.classList.add('flash');
-
-        // mark step list
-        const li = document.querySelector('.step-item[data-step="'+i+'"]');
-        if(li) li.classList.add('current');
-
-        // scroll tree panel to center current level
-        const treeScroll = document.getElementById('treeScroll');
-        if(level){
-            const rect = level.getBoundingClientRect();
-            const parentRect = treeScroll.getBoundingClientRect();
-            // scroll so the level is visible (center-ish)
-            const offset = (rect.top + rect.height/2) - (parentRect.top + parentRect.height/2);
-            treeScroll.scrollBy({ top: offset, left: 0, behavior: 'smooth' });
-        }
-    }
-
-    // go to a specific step
-    function goTo(i){
-        if(total === 0) return;
-        if(i < 0) i = 0;
-        if(i >= total) i = total - 1;
-        current = i;
-        highlightLevel(current);
-        // update URL hash (optional)
-        // location.hash = 'step-' + (current+1);
-    }
-
-    // next / prev / play / pause / reset
-    function next(){
-        if(current < total - 1) goTo(current + 1);
-        else { // loop or stop
-            // stop at end
-            pause();
-        }
-    }
-    function prev(){
-        if(current > 0) goTo(current - 1);
-    }
-    function play(){
-        if(timer) return;
-        timer = setInterval(() => {
-            if(current < total - 1) next();
-            else pause();
-        }, 1000);
-        // toggle play button text
-        document.getElementById('playBtn').textContent = '▶ En cours';
-    }
-    function pause(){
-        if(timer){
-            clearInterval(timer);
-            timer = null;
-            document.getElementById('playBtn').textContent = '▶ Lecture';
-        }
-    }
-    function reset(){
-        pause();
-        clearFlashes();
-        current = 0;
-        // optionally go to first
-        // goTo(0);
-    }
-
-    // attach controls
-    document.getElementById('nextBtn').addEventListener('click', function(e){ e.preventDefault(); next(); });
-    document.getElementById('prevBtn').addEventListener('click', function(e){ e.preventDefault(); prev(); });
-    document.getElementById('playBtn').addEventListener('click', function(e){ e.preventDefault(); play(); });
-    document.getElementById('pauseBtn').addEventListener('click', function(e){ e.preventDefault(); pause(); });
-    document.getElementById('resetBtn').addEventListener('click', function(e){ e.preventDefault(); reset(); });
-
-    // clicking on a step in the side list goes to that step
-    stepItems.forEach(item => {
-        item.addEventListener('click', function(){
-            const idx = Number(this.getAttribute('data-step'));
-            goTo(idx);
-        });
-    });
-
-    // initialize: go to first step if exists
-    if(total > 0){
-        // small delay to allow layout then highlight
-        setTimeout(() => { goTo(0); }, 150);
-    }
-})();
-</script>
 </body>
 </html>

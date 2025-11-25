@@ -761,29 +761,39 @@ from django.shortcuts import render
 # ===================================================================
 #   TIMSORT : EXTRACTION DES ETAPES PRINCIPALES POUR L'ARBRE
 # ===================================================================
+from django.shortcuts import render
 
+from django.shortcuts import render
+
+# ===================== TIMSORT =====================
 def timsort_main_steps(arr, minrun):
-    steps = []      # Contiendra uniquement les étapes importantes
+    steps = []
     n = len(arr)
 
-    def snapshot(label):
-        """Ajoute une étape principale avec copie du tableau."""
+    def snapshot(label, run_left=None, run_right=None, complexity="O(1)"):
+        run_block = None
+        inserted = []
+        if run_left is not None and run_right is not None:
+            run_block = arr[run_left:run_right+1]
+            inserted = run_block.copy()
         steps.append({
             "label": label,
-            "array": arr.copy()
+            "array": arr.copy(),
+            "complexity": complexity,
+            "run_left": run_left,
+            "run_right": run_right,
+            "run_block": run_block,
+            "inserted": inserted
         })
 
-    # ---------------------------
-    # 1) Découpage et insertion sort
-    # ---------------------------
+    # 1) Découpage + insertion sort
     i = 0
     while i < n:
         left = i
         right = min(i + minrun - 1, n - 1)
+        snapshot(f"📌 Détection du run [{left}:{right}]", left, right, f"O({right-left+1}²)")
 
-        snapshot(f"📌 Détection du run [{left}:{right}]")
-
-        # Tri insertion du run
+        # Tri par insertion sur le run
         for j in range(left + 1, right + 1):
             key = arr[j]
             k = j - 1
@@ -792,56 +802,70 @@ def timsort_main_steps(arr, minrun):
                 k -= 1
             arr[k + 1] = key
 
-        snapshot(f"🔵 Run [{left}:{right}] trié")
-
+        snapshot(f"🔵 Run [{left}:{right}] trié", left, right, f"O({right-left+1}²)")
         i += minrun
 
-    snapshot("🟦 Tous les runs initiaux sont triés")
+    snapshot("🟦 Tous les runs initiaux sont triés", complexity="O(n)")
 
-    # ---------------------------
-    # 2) Fusions successives
-    # ---------------------------
+    # 2) Fusion
     size = minrun
     while size < n:
         for left in range(0, n, 2*size):
-
             mid = min(left + size - 1, n - 1)
             right = min(left + 2*size - 1, n - 1)
 
             if mid < right:
-                snapshot(f"🟧 Fusion des runs [{left}:{mid}] + [{mid+1}:{right}]")
-
+                # Fusion réelle
                 merged = []
                 l, r = left, mid + 1
-
                 while l <= mid and r <= right:
                     if arr[l] <= arr[r]:
-                        merged.append(arr[l])
-                        l += 1
+                        merged.append(arr[l]); l += 1
                     else:
-                        merged.append(arr[r])
-                        r += 1
-
+                        merged.append(arr[r]); r += 1
                 while l <= mid:
-                    merged.append(arr[l])
-                    l += 1
+                    merged.append(arr[l]); l += 1
                 while r <= right:
-                    merged.append(arr[r])
-                    r += 1
+                    merged.append(arr[r]); r += 1
 
                 arr[left:left+len(merged)] = merged
-                snapshot(f"🟩 Résultat après fusion [{left}:{right}]")
+
+                # Snapshot fusion et résultat après fusion
+                snapshot(f"🟧 Fusion [{left}:{mid}] + [{mid+1}:{right}]", left, right, f"O({right-left+1})")
+                snapshot(f"🟩 Résultat après fusion [{left}:{right}]", left, right, f"O({right-left+1})")
 
         size *= 2
 
-    snapshot("✅ Tableau final trié")
+    
     return steps
 
+# ===================== CONSTRUCTION ARBRE 5 ÉTAPES =====================
+def build_tree_levels_5steps(steps):
+    """
+    Regroupe les étapes en 5 niveaux :
+    1. Détection des runs
+    2. Runs triés
+    3. Fusions
+    4. Résultat des fusions
+    5. Tableau final trié
+    """
+    levels = []
 
-# ===================================================================
-#   VIEW Django
-# ===================================================================
+    detect = [s for s in steps if "Détection du run" in s["label"]]
+    sorted_runs = [s for s in steps if "Run [" in s["label"] and "trié" in s["label"]]
+    fusion = [s for s in steps if "Fusion [" in s["label"]]
+    fusion_result = [s for s in steps if "Résultat après fusion" in s["label"]]
+    final = [s for s in steps if "Tableau final trié" in s["label"]]
 
+    if detect: levels.append(detect)
+    if sorted_runs: levels.append(sorted_runs)
+    if fusion: levels.append(fusion)
+    if fusion_result: levels.append(fusion_result)
+    if final: levels.append(final)
+
+    return levels
+
+# ===================== VUE DJANGO =====================
 def affiche_timsort(request):
     steps = []
     input_list = ""
@@ -850,102 +874,29 @@ def affiche_timsort(request):
     if request.method == "POST":
         input_list = request.POST.get("liste", "")
         minrun_input = request.POST.get("minrun", "")
-
-        # Lecture minrun
         try:
             minrun = int(minrun_input) if minrun_input else 32
         except:
             minrun = 32
-
         try:
             arr = [int(x.strip()) for x in input_list.split(",") if x.strip()]
             if not arr:
                 raise ValueError
-
-            # Appel de la version simplifiée des étapes
             steps = timsort_main_steps(arr, minrun)
-
         except ValueError:
-            steps = [{"label": "❌ Erreur : entrez une liste correcte", "array": []}]
+            steps = [{
+                "label": "❌ Erreur : entrez une liste correcte",
+                "array": [],
+                "run_block": None,
+                "complexity": "",
+                "inserted": []
+            }]
 
-    context = {
+    tree_levels = build_tree_levels_5steps(steps)
+
+    return render(request, "matrix_structures/affiche_timsort.html", {
         "steps": steps,
+        "tree_levels": tree_levels,
         "input_list": input_list,
-        "minrun": minrun,
-    }
-    return render(request, "matrix_structures/affiche_timsort.html", context)
-def timsort_main_steps(arr, minrun):
-    steps = []      # Contiendra les étapes principales
-    n = len(arr)
-
-    def snapshot(label, complexity):
-        """Ajoute une étape principale avec copie du tableau + complexité"""
-        steps.append({
-            "label": label,
-            "array": arr.copy(),
-            "complexity": complexity
-        })
-
-    # ---------------------------
-    # 1) Découpage et insertion sort
-    # ---------------------------
-    i = 0
-    while i < n:
-        left = i
-        right = min(i + minrun - 1, n - 1)
-        run_size = right - left + 1
-
-        snapshot(f"📌 Détection du run [{left}:{right}]", f"O({run_size}²)")
-
-        # Tri insertion du run
-        for j in range(left + 1, right + 1):
-            key = arr[j]
-            k = j - 1
-            while k >= left and arr[k] > key:
-                arr[k + 1] = arr[k]
-                k -= 1
-            arr[k + 1] = key
-
-        snapshot(f"🔵 Run [{left}:{right}] trié", f"O({run_size}²)")
-
-        i += minrun
-
-    snapshot("🟦 Tous les runs initiaux sont triés", f"O(n)")
-
-    # ---------------------------
-    # 2) Fusions successives
-    # ---------------------------
-    size = minrun
-    while size < n:
-        for left in range(0, n, 2*size):
-            mid = min(left + size - 1, n - 1)
-            right = min(left + 2*size - 1, n - 1)
-
-            if mid < right:
-                snapshot(f"🟧 Fusion des runs [{left}:{mid}] + [{mid+1}:{right}]", f"O({right-left+1})")
-
-                merged = []
-                l, r = left, mid + 1
-
-                while l <= mid and r <= right:
-                    if arr[l] <= arr[r]:
-                        merged.append(arr[l])
-                        l += 1
-                    else:
-                        merged.append(arr[r])
-                        r += 1
-
-                while l <= mid:
-                    merged.append(arr[l])
-                    l += 1
-                while r <= right:
-                    merged.append(arr[r])
-                    r += 1
-
-                arr[left:left+len(merged)] = merged
-                snapshot(f"🟩 Résultat après fusion [{left}:{right}]", f"O({right-left+1})")
-
-        size *= 2
-
-    snapshot("✅ Tableau final trié", "O(n log n)")
-    return steps
+        "minrun": minrun
+    })
